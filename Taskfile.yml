@@ -1,0 +1,65 @@
+version: '3'
+
+vars:
+  project_name: 'wiki.nikiv.dev'
+
+tasks:
+  default:
+    desc: List available tasks.
+    silent: true
+    cmds:
+      - task --list
+
+  setup:
+    desc: Install project dependencies with Bun.
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        if ! command -v bun >/dev/null 2>&1; then
+          echo "Bun runtime not found in PATH." >&2
+          echo "Install it via https://bun.sh/docs/installation" >&2
+          exit 1
+        fi
+        bun --version >/dev/null
+        tmp_log="$(mktemp)"
+        cleanup() {
+          rm -f "$tmp_log"
+        }
+        trap cleanup EXIT
+        ( bun install --frozen-lockfile >"$tmp_log" 2>&1 ) &
+        bun_pid=$!
+        spinner='|/-\'
+        i=0
+        printf 'Installing dependencies '
+        while kill -0 "$bun_pid" >/dev/null 2>&1; do
+          printf '\rInstalling dependencies %s' "${spinner:i++%${#spinner}:1}"
+          sleep 0.1
+        done
+        wait "$bun_pid"
+        status=$?
+        printf '\r\033[K'
+        if [ "$status" -ne 0 ]; then
+          cat "$tmp_log" >&2
+          exit "$status"
+        fi
+        trap - EXIT
+        cleanup
+        printf '✔️ you are setup\n'
+
+  dev:
+    desc: Start the Next.js dev server with Bun.
+    silent: true
+    cmds:
+      - |
+        set -euo pipefail
+        if ! command -v bun >/dev/null 2>&1; then
+          echo "Bun runtime not found in PATH."
+          echo "Install it via https://bun.sh/docs/installation"
+          exit 1
+        fi
+        if [ ! -d node_modules ]; then
+          echo "node_modules missing; running 'bun install --frozen-lockfile'."
+          bun install --frozen-lockfile
+        fi
+        bun run dev{{if .CLI_ARGS}} {{.CLI_ARGS}}{{end}}
