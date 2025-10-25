@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@openpanel/nextjs": "^1.0.8",
-    "fumadocs-core": "16.0.2",
-    "fumadocs-mdx": "13.0.0",
-    "fumadocs-ui": "16.0.2",
+    "fumadocs-core": "16.0.3",
+    "fumadocs-mdx": "13.0.1",
+    "fumadocs-ui": "16.0.3",
     "next": "16.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
